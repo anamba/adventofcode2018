@@ -25,7 +25,7 @@ claims.each do |id, claim|
 end
 
 conflict_statuses = Hash(Int32, Bool).new
-claims.each { |k,v| conflict_statuses[k] = false }
+claims.each { |k, v| conflict_statuses[k] = false }
 
 claimed_squares.values.each do |claim_ids|
   if claim_ids.size > 1
