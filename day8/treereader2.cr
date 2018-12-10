@@ -11,8 +11,8 @@ class Node
     return metadata.sum if child_count == 0
 
     values = metadata.map do |m|
-      next unless children[m-1]?
-      children[m-1].value.as(Int32)
+      next unless children[m - 1]?
+      children[m - 1].value.as(Int32)
     end.compact
 
     values.size > 0 ? values.sum : 0
