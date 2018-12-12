@@ -72,8 +72,8 @@ class Grid
     max_power_y = 0
     max_power_size = 0
     (1..300).each do |size|
-      (1..(300-size)).each do |y|
-        (1..(300-size)).each do |x|
+      (1..(300 - size)).each do |y|
+        (1..(300 - size)).each do |x|
           if max_power < (power = power_of_square_at(x, y, size))
             puts "#{x},#{y},#{size} = #{power}"
             max_power = power
