@@ -37,7 +37,7 @@ end
 # pp state
 
 last_start = 0
-last_gen = 0
+last_gen = 1
 last_total = 0
 last_config = ""
 
@@ -74,7 +74,7 @@ end
 
 i = state[:start]
 plants = state[:plants]
-total = 0
+total = 0_i64
 plants.size.times do |j|
   total += i + j if plants[j] == '#'
 end
