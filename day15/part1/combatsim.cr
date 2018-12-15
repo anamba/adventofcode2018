@@ -11,11 +11,11 @@ struct Square
 
   def_equals(@x, @y)
 
-  def adjacent_open_squares(board : Array(String), pieces : Array(Piece), path_so_far : Array(Square)) : Array(Square)
-    invalid_positions = pieces.reject(&.dead).map(&.pos) + path_so_far.map(&.pos)
+  def adjacent_open_squares(board : Array(String), pieces : Array(Piece)) : Array(Square)
+    invalid_positions = pieces.reject(&.dead).map(&.pos)
 
     ret = Array(Square).new
-    [{x, y-1}, {x-1, y}, {x+1, y}, {x, y+1}].each do |(col, row)|
+    [{x, y - 1}, {x - 1, y}, {x + 1, y}, {x, y + 1}].each do |(col, row)|
       if board[row]?.try &.[col]? == '.' && !invalid_positions.includes?({col, row})
         ret << Square.new(col, row)
       end
@@ -24,52 +24,64 @@ struct Square
   end
 
   def adjacent_to?(square : Square)
-    [{x, y-1}, {x-1, y}, {x+1, y}, {x, y+1}].each do |spos|
+    [{x, y - 1}, {x - 1, y}, {x + 1, y}, {x, y + 1}].each do |spos|
       return true if spos == square.pos
     end
     false
   end
 
   def shortest_path_to(squares : Array(Square), board : Array(String), pieces : Array(Piece)) : Array(Square)?
+    # no need to go through all the work if we are right next to a target location
     squares.each do |square|
-      if square.x == x && square.y == y
-        return Array(Square).new
-      end
+      # if square.x == x && square.y == y
+      #   return Array(Square).new
+      # end
       if adjacent_to?(square)
         return [square] # we're done!
       end
     end
 
-    # begin breadth first search
-
     # create and seed
-    paths_to_check = Deque(Tuple(Square, Array(Square))).new
-    squares.each do |square|
-      adjacent_open_squares(board, pieces, [square]).each { |s| paths_to_check << {square, [s]} }
-    end
+    visited_position = Hash(Tuple(Int32, Int32), Bool).new
+    # shortest_paths = Hash(Square, Array(Square)).new
+
+    paths_to_check = Deque(Array(Square)).new
+    adjacent_open_squares(board, pieces).each { |s| paths_to_check << [s] }
 
     max_path_size = 0
 
     while paths_to_check.any?
-      square, path = paths_to_check.shift
+      path = paths_to_check.shift
+      next if visited_position[path.last.pos]?
+      visited_position[path.last.pos] = true
 
       if path.size > max_path_size
         max_path_size = path.size
-        puts "Checking paths of size #{max_path_size}, #{paths_to_check.size} more paths to check"
+        # puts "Checking paths of size #{max_path_size}, #{paths_to_check.size} more paths to check; already visited #{visited_position.size}"
       end
-      # break if path.size > board.size * 3 # circuit-breaker
       # pp path
 
-      if path.last.adjacent_to?(square)
-        puts "shortest path from #{x},#{y} to #{square.x},#{square.y}: #{path.size+1}"
-        return path + [square] # we're done!
+      squares.each do |square|
+        # next if shortest_paths[square]? # skip if we already have a path for this one
+        if path.last.adjacent_to?(square)
+          # puts "shortest path from #{x},#{y} to #{square.x},#{square.y}: #{path.size+1}"
+          return path + [square]
+          # shortest_paths[square] = path + [square]
+        end
       end
 
-      path.last.adjacent_open_squares(board, pieces, path + [square]).each { |s| paths_to_check << {square, path + [s]} }
+      path.last.adjacent_open_squares(board, pieces).each { |s| paths_to_check << path + [s] unless visited_position[s.pos]? }
     end
 
-    # puts "Giving up"
-    return nil
+    return nil # if shortest_paths.empty?
+
+    # order of squares should already be in tiebreaker order
+    # min_path_size = shortest_paths.values.map(&.size).min
+    # squares.each do |square|
+    #   if (path = shortest_paths[square]?) && path.size == min_path_size
+    #     return path
+    #   end
+    # end
   end
 end
 
@@ -103,7 +115,7 @@ class Piece
   def adjacent_enemy(pieces : Array(Piece)) : Piece?
     candidates = Array(Piece).new
     living_enemies = enemies(pieces)
-    [{x, y-1}, {x-1, y}, {x+1, y}, {x, y+1}].each do |spos|
+    [{x, y - 1}, {x - 1, y}, {x + 1, y}, {x, y + 1}].each do |spos|
       if (enemy = living_enemies.select { |p| p.pos == spos }.first?)
         candidates << enemy
       end
@@ -124,7 +136,7 @@ class Piece
 
   def adjacent_open_squares(board : Array(String), pieces : Array(Piece)) : Array(Square)
     ret = Array(Square).new
-    [{x, y-1}, {x-1, y}, {x+1, y}, {x, y+1}].each do |(col, row)|
+    [{x, y - 1}, {x - 1, y}, {x + 1, y}, {x, y + 1}].each do |(col, row)|
       if board[row]?.try &.[col]? == '.' && !pieces.reject(&.dead).map(&.pos).includes?({col, row})
         ret << Square.new(col, row)
       end
@@ -133,8 +145,8 @@ class Piece
   end
 
   def move_toward_closest_reachable_target(board : Array(String), pieces : Array(Piece))
-    pp enemies(pieces).map(&.adjacent_open_squares(board, pieces))
     targets = enemies(pieces).map(&.adjacent_open_squares(board, pieces)).flatten
+    # pp targets
     if (shortest_path = Square.new(x, y).shortest_path_to(targets, board, pieces)) && (nextpos = shortest_path.first?)
       puts "Distance to target (#{shortest_path.last.x},#{shortest_path.last.y}): #{shortest_path.size}. Moving from #{x},#{y} to #{nextpos.x},#{nextpos.y}"
       @x, @y = nextpos.x, nextpos.y
