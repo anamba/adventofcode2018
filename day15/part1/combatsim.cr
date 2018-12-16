@@ -33,6 +33,7 @@ struct Square
   def shortest_path_to(squares : Array(Square), board : Array(String), pieces : Array(Piece)) : Array(Square)?
     # no need to go through all the work if we are right next to a target location
     squares.each do |square|
+      # should never happen
       # if square.x == x && square.y == y
       #   return Array(Square).new
       # end
@@ -43,7 +44,6 @@ struct Square
 
     # create and seed
     visited_position = Hash(Tuple(Int32, Int32), Bool).new
-    # shortest_paths = Hash(Square, Array(Square)).new
 
     paths_to_check = Deque(Array(Square)).new
     adjacent_open_squares(board, pieces).each { |s| paths_to_check << [s] }
@@ -62,11 +62,9 @@ struct Square
       # pp path
 
       squares.each do |square|
-        # next if shortest_paths[square]? # skip if we already have a path for this one
         if path.last.adjacent_to?(square)
           # puts "shortest path from #{x},#{y} to #{square.x},#{square.y}: #{path.size+1}"
           return path + [square]
-          # shortest_paths[square] = path + [square]
         end
       end
 
@@ -74,14 +72,6 @@ struct Square
     end
 
     return nil # if shortest_paths.empty?
-
-    # order of squares should already be in tiebreaker order
-    # min_path_size = shortest_paths.values.map(&.size).min
-    # squares.each do |square|
-    #   if (path = shortest_paths[square]?) && path.size == min_path_size
-    #     return path
-    #   end
-    # end
   end
 end
 
@@ -145,11 +135,15 @@ class Piece
   end
 
   def move_toward_closest_reachable_target(board : Array(String), pieces : Array(Piece))
-    targets = enemies(pieces).map(&.adjacent_open_squares(board, pieces)).flatten
-    # pp targets
-    if (shortest_path = Square.new(x, y).shortest_path_to(targets, board, pieces)) && (nextpos = shortest_path.first?)
-      puts "Distance to target (#{shortest_path.last.x},#{shortest_path.last.y}): #{shortest_path.size}. Moving from #{x},#{y} to #{nextpos.x},#{nextpos.y}"
+    paths = enemies(pieces).map do |enemy|
+      targets = enemy.adjacent_open_squares(board, pieces)
+      # pp targets
+      Square.new(x, y).shortest_path_to(targets, board, pieces)
+    end
+    if (shortest_path = paths.compact.sort_by { |p| {p.size, p.last.y, p.last.x} }.first?) && (nextpos = shortest_path.first?)
+      # puts "Distance to target (#{shortest_path.last.x},#{shortest_path.last.y}): #{shortest_path.size}. Moving from #{x},#{y} to #{nextpos.x},#{nextpos.y}"
       @x, @y = nextpos.x, nextpos.y
+      true
     end
   end
 end
@@ -203,6 +197,7 @@ def print_board(board, pieces)
 end
 
 def iterate_board(board, pieces)
+  moved = false
   pieces.reject(&.dead).sort_by { |a| {a.y, a.x} }.each do |piece|
     next if piece.dead # could have died mid-round
 
@@ -214,11 +209,17 @@ def iterate_board(board, pieces)
     if (enemy = piece.adjacent_enemy(pieces))
       piece.attack(enemy)
     else
-      piece.move_toward_closest_reachable_target(board, pieces)
+      if piece.move_toward_closest_reachable_target(board, pieces)
+        moved = true
+      end
       if (enemy = piece.adjacent_enemy(pieces))
         piece.attack(enemy)
       end
     end
+  end
+
+  if moved
+    sleep 1 if ENV["DEBUG"]?
   end
 
   # otherwise continue
