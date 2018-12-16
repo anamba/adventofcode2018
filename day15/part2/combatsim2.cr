@@ -261,7 +261,7 @@ loop do
     print_board(board, pieces)
 
     # check whether we've found a successful higher power
-    if (p = results.reject { |k,v| v != 1 }.keys.sort.first?)
+    if (p = results.reject { |k, v| v != 1 }.keys.sort.first?)
       # try a value halfway between the two
       ap += ((p - ap) / 2.0).floor.to_i
       while results[ap]? && ap < p
@@ -286,7 +286,7 @@ loop do
     best_ap = ap if ap < best_ap
 
     # check whether we've already unsuccessfully tried a lower power
-    if (p = results.reject { |k,v| v != -1 }.keys.sort.reverse.first?)
+    if (p = results.reject { |k, v| v != -1 }.keys.sort.reverse.first?)
       # try a value halfway between the two
       ap -= ((ap - p) / 2.0).floor.to_i
     else
