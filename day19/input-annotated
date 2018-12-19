@@ -1,0 +1,37 @@
+#ip 5
+addi 5 16 5  #0 SKIP to #17
+seti 1 0 4   #1 ** sets r4 = 1
+seti 1 8 1   #2 sets r1 = 1
+mulr 4 1 3   #3 sets r3 = r4 * r1
+eqrr 3 2 3   #4 r3 = 1 if r2 == r1 * r4 (ah... this happens when r4 is a factor of r3. program output sum of factors)
+addr 3 5 5   #5 *** if r3 = 1 then SKIP to #7
+addi 5 1 5   #6 SKIP to #8
+addr 4 0 0   #7 *** r0 += r4 (r4 is 1 the first time)
+addi 1 1 1   #8 r1 += 1 (+ more to speed up)
+gtrr 1 2 3   #9 r3 = 1 if r1 > r2 (usually not)
+addr 5 3 5   #10 SKIP to #11 or #12, usually #11)
+seti 2 4 5   #11 SKIP to #3
+addi 4 1 4   #12 r4 += 1 (+ more to speed up)
+gtrr 4 2 3   #13 r3 = 1 if r4 > r2 (usually not)
+addr 3 5 5   #14 SKIP to #15 or #16 (usually #15... #16 ends)
+seti 1 7 5   #15 SKIP to #19
+mulr 5 5 5   #16 *** END
+addi 2 2 2   #17 ** r2 += 2 (2)
+mulr 2 2 2   #18 r2 *= 2 (4)
+mulr 5 2 2   #19 r2 *= 19 (76)
+muli 2 11 2  #20 r2 *= 11 (836)
+addi 3 6 3   #21 r3 += 6 (6)
+mulr 3 5 3   #22 r3 *= 22 (132)
+addi 3 9 3   #23 r3 += 9 (141)
+addr 2 3 2   #24 r2 += r3 (977)
+addr 5 0 5   #25 ** SKIP none for part 1, SKIP to #27 for part 2
+seti 0 5 5   #26 ** SKIP to #1 (part 1)
+setr 5 9 3   #27 r3 = 27
+mulr 3 5 3   #28 r3 *= 28 (756)
+addr 5 3 3   #29 r3 += 29 (785)
+mulr 5 3 3   #30 r3 *= 30 (23550)
+muli 3 14 3  #31 r3 *= 14 (329700)
+mulr 3 5 3   #32 r3 *= 32 (10550400)
+addr 2 3 2   #33 r2 = r2 + r3 (10551377)
+seti 0 1 0   #34 r0 = 1
+seti 0 0 5   #35 SKIP to #1
